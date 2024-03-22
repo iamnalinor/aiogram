@@ -63,6 +63,8 @@ class TelegramMethod(BotContextController, BaseModel, Generic[TelegramType], ABC
 
         super().__init__(*args, **kwargs)
 
+    __init__.__pydantic_base_init__ = True
+
     @model_validator(mode="before")
     @classmethod
     def remove_unset(cls, values: Dict[str, Any]) -> Dict[str, Any]:
