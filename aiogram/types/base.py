@@ -6,6 +6,11 @@ from pydantic import BaseModel, ConfigDict, model_validator
 from aiogram.client.context_controller import BotContextController
 from aiogram.client.default import Default
 
+try:
+    from babel.support import LazyProxy
+except ImportError:
+    LazyProxy = None
+
 
 class TelegramObject(BotContextController, BaseModel):
     model_config = ConfigDict(
@@ -17,6 +22,14 @@ class TelegramObject(BotContextController, BaseModel):
         arbitrary_types_allowed=True,
         defer_build=True,
     )
+
+    def __init__(self, *args, **kwargs):
+        if LazyProxy is not None:
+            for key, value in kwargs.items():
+                if isinstance(value, LazyProxy):
+                    kwargs[key] = value.value
+
+        super().__init__(*args, **kwargs)
 
     @model_validator(mode="before")
     @classmethod

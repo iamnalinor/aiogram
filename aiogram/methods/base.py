@@ -17,6 +17,11 @@ from pydantic.functional_validators import model_validator
 
 from aiogram.client.context_controller import BotContextController
 
+try:
+    from babel.support import LazyProxy
+except ImportError:
+    LazyProxy = None
+
 from ..types import InputFile, ResponseParameters
 from ..types.base import UNSET_TYPE
 
@@ -49,6 +54,14 @@ class TelegramMethod(BotContextController, BaseModel, Generic[TelegramType], ABC
         populate_by_name=True,
         arbitrary_types_allowed=True,
     )
+
+    def __init__(self, *args, **kwargs):
+        if LazyProxy is not None:
+            for key, value in kwargs.items():
+                if isinstance(value, LazyProxy):
+                    kwargs[key] = value.value
+
+        super().__init__(*args, **kwargs)
 
     @model_validator(mode="before")
     @classmethod
